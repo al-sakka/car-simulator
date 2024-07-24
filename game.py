@@ -10,20 +10,22 @@ screen_height = 600
 # These values can be adjusted
 x_max_left_position = int(screen_width * 0.25)
 x_max_right_position = int(screen_width * 0.8)
-y_position = 150
+car_position = 150
 
 # Speed of background scroll
 background_min_speed    = 5
 background_speed        = 15
 background_max_speed    = 40
 background_speed_offset = 5
+stones = []
+cars = []
 
 # Place Pygame window at a specific location
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (50, 50)
 
 # Classes
 class Vehicle:
-    def __init__(self, colour = "red", x = 400, y = 300):
+    def __init__(self, colour = "red", x = 400, y = car_position):
         self.img_path = "vehicles/" + colour + ".png"
         self.location = x, y
         self.draw()
@@ -67,10 +69,16 @@ class Stone:
         self.img_location = self.img.get_rect()
         self.img_location.center = self.location
 
+    ##
     def update_position(self):
         self.img_location.centery -= background_speed
         if self.img_location.bottom < 0:
-            self.img_location.top = screen_height
+            stones.clear()
+            grass_num = random.randint(1,2)
+            for i in range(grass_num):
+                x_position = random.randint(x_max_left_position, x_max_right_position)
+                y_position = random.randint(0, screen_height)
+                stones.append(Stone("grass", x_position, y_position))
 
 
 # Pygame settings
@@ -79,10 +87,14 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption(label)
 
 background_image = pygame.image.load("road/road.png")
-
 running = True
 
-cars = []
+# Initialize stones
+for _ in range(10):  # Adjust number as needed
+    x_position = random.randint(x_max_left_position, x_max_right_position)
+    y_position = random.randint(0, screen_height)  # Start stones off-screen
+    stones.append(Stone("grass", x_position, y_position))
+
 
 for i in range(number_of_cars):
     x_position = random.randint(x_max_left_position, x_max_right_position)
@@ -90,21 +102,12 @@ for i in range(number_of_cars):
 
     if vehicle_class == "car":
         c = random.choice(["red", "green", "blue"])  # Colour
-        cars.append(Vehicle(c, x_position, y_position))
+        cars.append(Vehicle(c, x_position, car_position))
     elif vehicle_class == "truck":
         k = random.choice(["vehicles/truck_tractor", "vehicles/box_truck"])  # Kind
-        cars.append(Truck(x_position, y_position, k))
+        cars.append(Truck(x_position, car_position, k))
     elif vehicle_class == "police":
-        cars.append(Police(x_position, y_position))
-
-stones = []
-
-grass_num = random.randint(0,10)
-
-for i in range(grass_num):
-    x_position = random.randint(x_max_left_position, x_max_right_position)
-    y_position = random.randint(0, screen_height)
-    stones.append(Stone("grass", x_position, y_position))
+        cars.append(Police(x_position, car_position))
 
 # Background positions
 background_y1 = 0
@@ -120,15 +123,15 @@ while running:
 
     # Check if any arrow keys are being held down
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT]:
+    if (keys[pygame.K_RIGHT]) or (keys[pygame.K_d]):
         for car in cars:
             car.move("RIGHT")
-    if keys[pygame.K_LEFT]:
+    if (keys[pygame.K_LEFT]) or (keys[pygame.K_a]):
         for car in cars:
             car.move("LEFT")
-    if (keys[pygame.K_DOWN]) and (background_speed < background_max_speed):
+    if (keys[pygame.K_DOWN]) or (keys[pygame.K_s]) and (background_speed < background_max_speed):
         background_speed += background_speed_offset
-    if (keys[pygame.K_UP]) and (background_speed > background_min_speed):
+    if (keys[pygame.K_UP]) or (keys[pygame.K_w]) and (background_speed > background_min_speed):
         background_speed -= background_speed_offset
 
     # Update background positions
