@@ -12,12 +12,18 @@ x_max_left_position = int(screen_width * 0.25)
 x_max_right_position = int(screen_width * 0.8)
 y_position = 150
 
+# Speed of background scroll
+background_min_speed    = 5
+background_speed        = 15
+background_max_speed    = 40
+background_speed_offset = 5
+
 # Place Pygame window at a specific location
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (50, 50)
 
 # Classes
 class Vehicle:
-    def __init__(self, colour="red", x=400, y=400):
+    def __init__(self, colour = "red", x = 400, y = 300):
         self.img_path = "vehicles/" + colour + ".png"
         self.location = x, y
         self.draw()
@@ -28,16 +34,11 @@ class Vehicle:
         self.img_location = self.img.get_rect()
         self.img_location.center = self.location
 
-    def update_position(self):
-        self.img_location.centery -= 5
-        if self.img_location.bottom < 0:
-            self.img_location.top = screen_height
-
     def move(self, position):
-        if (position == 1) and (self.img_location.centerx + 5 <= x_max_right_position):
-            self.img_location.x += 5
-        elif (position == 2) and (self.img_location.centerx - 5 >= x_max_left_position):
-            self.img_location.x -= 5
+        if (position == "RIGHT") and (self.img_location.centerx + 5 <= x_max_right_position):
+            self.img_location.x += 10
+        elif (position == "LEFT") and (self.img_location.centerx - 5 >= x_max_left_position):
+            self.img_location.x -= 10
 
 class Truck(Vehicle):
     def __init__(self, x, y, truck="vehicles/truck_tractor"):
@@ -52,6 +53,25 @@ class Police(Vehicle):
         self.img_path = "vehicles/police_car.png"
         self.location = x, y
         self.draw()
+
+class Stone:
+    def  __init__(self, kind = "grass", x = 400, y = 300, size = (100,100)):
+        self.img_path = "road/" + kind + ".png"
+        self.location = x, y
+        self.size = size
+        self.draw()
+
+    def draw(self):
+        self.img = pygame.image.load(self.img_path)
+        self.img = pygame.transform.scale(self.img, self.size)  # Resize the image
+        self.img_location = self.img.get_rect()
+        self.img_location.center = self.location
+
+    def update_position(self):
+        self.img_location.centery -= background_speed
+        if self.img_location.bottom < 0:
+            self.img_location.top = screen_height
+
 
 # Pygame settings
 pygame.init()
@@ -77,12 +97,18 @@ for i in range(number_of_cars):
     elif vehicle_class == "police":
         cars.append(Police(x_position, y_position))
 
+stones = []
+
+grass_num = random.randint(0,10)
+
+for i in range(grass_num):
+    x_position = random.randint(x_max_left_position, x_max_right_position)
+    y_position = random.randint(0, screen_height)
+    stones.append(Stone("grass", x_position, y_position))
+
 # Background positions
 background_y1 = 0
 background_y2 = screen_height
-
-# Speed of background scroll
-background_speed = 20
 
 # Start game loop
 while running:
@@ -96,18 +122,14 @@ while running:
     keys = pygame.key.get_pressed()
     if keys[pygame.K_RIGHT]:
         for car in cars:
-            car.move(1)
+            car.move("RIGHT")
     if keys[pygame.K_LEFT]:
         for car in cars:
-            car.move(2)
-    if (keys[pygame.K_DOWN]) and (background_speed < 40):
-        background_speed += 5
-    if (keys[pygame.K_UP]) and (background_speed > 5):
-        background_speed -= 5
-
-
-    # for car in cars:
-    #     car.update_position()
+            car.move("LEFT")
+    if (keys[pygame.K_DOWN]) and (background_speed < background_max_speed):
+        background_speed += background_speed_offset
+    if (keys[pygame.K_UP]) and (background_speed > background_min_speed):
+        background_speed -= background_speed_offset
 
     # Update background positions
     background_y1 -= background_speed
@@ -119,11 +141,18 @@ while running:
     if background_y2 <= -screen_height:
         background_y2 = screen_height
 
+    for stone in stones:
+        stone.update_position()
+
     # Set background image
     screen.blit(background_image, (0, background_y1))
     screen.blit(background_image, (0, background_y2))
 
-    # Place images of cars
+    # Place Stones
+    for stone in stones:
+        screen.blit(stone.img, stone.img_location)
+
+    # Place Cars
     for car in cars:
         screen.blit(car.img, car.img_location)
 
