@@ -2,7 +2,7 @@ import pygame
 import random
 import os
 
-number_of_cars = 10
+number_of_cars = 1
 screen_width   = 800
 screen_height  = 600
 
@@ -59,30 +59,30 @@ running = True
 
 cars = []
 
-
 # This Values can be adjusted
-x_left_position = (screen_width / 4) + 90
-x_right_position = (screen_width * (3 / 4)) - 50
+x_max_left_position  = (screen_width * (0.25))
+x_max_right_position = (screen_width * (0.80))
 y_position = 0
 
 min_distance = 250  # Minimum distance between cars
 
 for i in range(number_of_cars):
-    y_rand = random.randint(0, screen_height)
-    y_position = y_position + y_rand + min_distance
+    x_position = random.randint(x_max_left_position, x_max_right_position)
+    # y_position = random.randint(0, screen_height)
+    y_position = 0
 
     vehicle_class = random.choice(["car","truck","police"])
 
     if vehicle_class == "car":
         c = random.choice(["red", "green", "blue"]) # colour
-        cars.append(Vehicle(c, x_left_position, y_position))
+        cars.append(Vehicle(c, x_position, y_position))
 
     elif vehicle_class == "truck":
         k = random.choice(["vehicles/truck_tractor", "vehicles/box_truck"]) # kind
-        cars.append(Truck(x_right_position, y_position, k))
+        cars.append(Truck(x_position, y_position, k))
 
     elif vehicle_class == "police":
-        cars.append(Police(x_left_position, y_position))
+        cars.append(Police(x_position, y_position))
 
 
 # start game loop
@@ -99,11 +99,10 @@ while running:
     # set background image
     screen.blit(background_image, (0, 0))
 
-    # place image on the screen
+    # place images of cars
     for car in cars:
         screen.blit(car.img, car.img_location)
 
-    # flip() the display to put your work on screen
     pygame.display.flip()
 
 pygame.quit()
