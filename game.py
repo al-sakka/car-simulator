@@ -9,6 +9,7 @@ screen_height = 600
 # These values can be adjusted
 x_max_left_position = int(screen_width * 0.25)
 x_max_right_position = int(screen_width * 0.8)
+
 car_position = 150
 
 # Speed of background scroll
@@ -16,19 +17,20 @@ background_min_speed = 5
 background_speed = 15
 background_max_speed = 40
 background_speed_offset = 5
+
 stones = []
 cars = []
 
-# Maximum number of stones to show on screen
+# Maximum number of stones on the screen
 max_stones = 4
 
 # Place Pygame window at a specific location
-os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (50, 50)
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d, %d" % (50, 50)
 
 # Classes
 class Vehicle:
-    def __init__(self, colour="red", x=400, y=car_position):
-        self.img_path = "vehicles/" + colour + ".png"
+    def __init__(self, type, x = 400, y = car_position):
+        self.img_path = "vehicles/" + type + ".png"
         self.location = x, y
         self.draw()
 
@@ -39,25 +41,13 @@ class Vehicle:
         self.img_location.center = self.location
 
     def move(self, position):
-        if position == "RIGHT" and self.img_location.centerx + 10 <= x_max_right_position:
+        if (position == "RIGHT") and (self.img_location.centerx + 10 <= x_max_right_position):
             self.img_location.x += 10
-        elif position == "LEFT" and self.img_location.centerx - 10 >= x_max_left_position:
+        elif (position == "LEFT") and (self.img_location.centerx - 10 >= x_max_left_position):
             self.img_location.x -= 10
 
-class Truck(Vehicle):
-    def __init__(self, x, y):
-        super().__init__(colour="red", x=x, y=y)
-        self.img_path = "vehicles/box_truck.png"
-        self.draw()
-
-class Police(Vehicle):
-    def __init__(self, x, y):
-        super().__init__(colour="red", x=x, y=y)
-        self.img_path = "vehicles/police_car.png"
-        self.draw()
-
 class Stone:
-    def __init__(self, kind="grass", x=400, y=300, size=(100, 100)):
+    def __init__(self, kind = "grass", x = 400, y = 300, size = (100, 100)):
         self.img_path = "road/" + kind + ".png"
         self.location = x, y
         self.size = size
@@ -92,19 +82,14 @@ running = True
 # Initialize stones
 for _ in range(max_stones):  # Adjust number as needed
     x_position = random.randint(x_max_left_position, x_max_right_position)
-    y_position = random.randint(0, screen_height)  # Start stones on-screen
+    y_position = random.randint(0, screen_height)
     stones.append(Stone("grass", x_position, y_position))
 
+# Initialize cars
 x_position = random.randint(x_max_left_position, x_max_right_position)
-vehicle_class = random.choice(["car", "truck", "police"])
+vehicle_type = random.choice(["red", "green", "blue", "truck", "police"])
 
-if vehicle_class == "car":
-    c = random.choice(["red", "green", "blue"])  # Colour
-    cars.append(Vehicle(c, x_position, car_position))
-elif vehicle_class == "truck":
-    cars.append(Truck(x_position, car_position))
-elif vehicle_class == "police":
-    cars.append(Police(x_position, car_position))
+cars.append(Vehicle(vehicle_type, x_position))
 
 # Background positions
 background_y1 = 0
@@ -126,9 +111,9 @@ while running:
     if keys[pygame.K_LEFT] or keys[pygame.K_a]:
         for car in cars:
             car.move("LEFT")
-    if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and background_speed < background_max_speed:
+    if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (background_speed < background_max_speed):
         background_speed += background_speed_offset
-    if (keys[pygame.K_UP] or keys[pygame.K_w]) and background_speed > background_min_speed:
+    if (keys[pygame.K_UP] or keys[pygame.K_w]) and (background_speed > background_min_speed):
         background_speed -= background_speed_offset
 
     # Update background positions
