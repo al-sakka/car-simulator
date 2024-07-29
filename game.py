@@ -45,9 +45,9 @@ class Vehicle:
             self.img_location.x -= 10
 
 class Truck(Vehicle):
-    def __init__(self, x, y, truck="vehicles/truck_tractor"):
+    def __init__(self, x, y):
         super().__init__(colour="red", x=x, y=y)
-        self.img_path = truck + ".png"
+        self.img_path = "vehicles/box_truck.png"
         self.draw()
 
 class Police(Vehicle):
@@ -84,6 +84,8 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption(label)
 
 background_image = pygame.image.load("road/road.png")
+arrows_icon = pygame.image.load("road/arrows.png")
+arrows_icon = pygame.transform.scale(arrows_icon, (150, 150))
 # background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 running = True
 
@@ -100,8 +102,7 @@ if vehicle_class == "car":
     c = random.choice(["red", "green", "blue"])  # Colour
     cars.append(Vehicle(c, x_position, car_position))
 elif vehicle_class == "truck":
-    k = random.choice(["vehicles/truck_tractor", "vehicles/box_truck"])  # Kind
-    cars.append(Truck(x_position, car_position, k))
+    cars.append(Truck(x_position, car_position))
 elif vehicle_class == "police":
     cars.append(Police(x_position, car_position))
 
@@ -156,6 +157,8 @@ while running:
     # Set background image
     screen.blit(background_image, (0, background_y1))
     screen.blit(background_image, (0, background_y2))
+
+    screen.blit(arrows_icon, (screen_width - 150, screen_height - 150))
 
     # Place Stones
     for stone in stones:
