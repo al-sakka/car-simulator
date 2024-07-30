@@ -6,6 +6,7 @@ label = "Car Simulator"
 screen_width = 800
 screen_height = 600
 
+
 # These values can be adjusted
 x_max_left_position = int(screen_width * 0.25)
 x_max_right_position = int(screen_width * 0.8)
