@@ -19,17 +19,17 @@ background_max_speed = 40
 background_speed_offset = 5
 
 stones = []
-cars = []
 
 # Maximum number of stones on the screen
-max_stones = 4
+max_stones = 10
+score_counter = 0
 
 # Place Pygame window at a specific location
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d, %d" % (50, 50)
 
 # Classes
 class Vehicle:
-    def __init__(self, type, x = 400, y = car_position):
+    def __init__(self, type, x=400, y=car_position):
         self.img_path = "vehicles/" + type + ".png"
         self.location = x, y
         self.draw()
@@ -47,7 +47,7 @@ class Vehicle:
             self.img_location.x -= 10
 
 class Stone:
-    def __init__(self, kind = "grass", x = 400, y = 300, size = (100, 100)):
+    def __init__(self, kind="grass", x=400, y=300, size=(100, 100)):
         self.img_path = "road/" + kind + ".png"
         self.location = x, y
         self.size = size
@@ -63,10 +63,6 @@ class Stone:
         self.img_location.centery -= background_speed
         if self.img_location.bottom < 0:
             stones_to_remove.append(self)
-            if len(stones) - len(stones_to_remove) < max_stones:
-                x_position = random.randint(x_max_left_position, x_max_right_position)
-                y_position = random.randint(screen_height, screen_height + 100)
-                stones_to_add.append(Stone("grass", x_position, y_position))
 
 # Pygame settings
 pygame.init()
@@ -76,24 +72,21 @@ pygame.display.set_caption(label)
 background_image = pygame.image.load("road/road.png")
 arrows_icon = pygame.image.load("road/arrows.png")
 arrows_icon = pygame.transform.scale(arrows_icon, (150, 150))
-# background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 running = True
-
-# Initialize stones
-for _ in range(max_stones):  # Adjust number as needed
-    x_position = random.randint(x_max_left_position, x_max_right_position)
-    y_position = random.randint(0, screen_height)
-    stones.append(Stone("grass", x_position, y_position))
 
 # Initialize cars
 x_position = random.randint(x_max_left_position, x_max_right_position)
 vehicle_type = random.choice(["red", "green", "blue", "truck", "police"])
 
-cars.append(Vehicle(vehicle_type, x_position))
+car = Vehicle(vehicle_type, x_position)
 
 # Background positions
 background_y1 = 0
 background_y2 = screen_height
+
+# Variables to control stone addition
+stone_add_interval = 100  # Number of frames between adding stones
+stone_add_counter = 0
 
 # Start game loop
 while running:
@@ -106,11 +99,9 @@ while running:
     # Check if any arrow keys are being held down
     keys = pygame.key.get_pressed()
     if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-        for car in cars:
-            car.move("RIGHT")
+        car.move("RIGHT")
     if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-        for car in cars:
-            car.move("LEFT")
+        car.move("LEFT")
     if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (background_speed < background_max_speed):
         background_speed += background_speed_offset
     if (keys[pygame.K_UP] or keys[pygame.K_w]) and (background_speed > background_min_speed):
@@ -130,14 +121,22 @@ while running:
     stones_to_remove = []
     stones_to_add = []
 
+    # Update stone positions
     for stone in stones:
         stone.update_position()
 
-    # Remove stones that have gone off-screen and add new stones
+    # Remove stones that have gone off-screen
     for stone in stones_to_remove:
         stones.remove(stone)
-    for stone in stones_to_add:
-        stones.append(stone)
+
+    # Add stones gradually
+    if len(stones) < max_stones and stone_add_counter >= stone_add_interval:
+        x_position = random.randint(x_max_left_position, x_max_right_position)
+        y_position = random.randint(screen_height, screen_height + 100)
+        stones.append(Stone("grass", x_position, y_position))
+        stone_add_counter = 0
+    else:
+        stone_add_counter += 2
 
     # Set background image
     screen.blit(background_image, (0, background_y1))
@@ -149,9 +148,20 @@ while running:
     for stone in stones:
         screen.blit(stone.img, stone.img_location)
 
-    # Place Cars
-    for car in cars:
-        screen.blit(car.img, car.img_location)
+    # Place Car
+    screen.blit(car.img, car.img_location)
+
+    screen.blit(pygame.font.SysFont("Arial", 24).render("Score: " + str(score_counter), True, (255, 255, 255)), (10, 10))
+
+    location = 0
+
+    # Check for collision
+    for stone in stones:
+        if stone.img_location.colliderect(car.img_location):
+            location = stone.img_location.centery
+            if(location == stone.img_location.centery):
+                score_counter += 1
+                stones.remove(stone)
 
     pygame.display.flip()
 
